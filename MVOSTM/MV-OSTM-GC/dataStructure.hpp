@@ -2,7 +2,7 @@
 //  dataStructure.hpp
 //  MV-OSTM
 //
-
+//  Created by Chirag Juyal on 4/5/18.
 //  Copyright © 2018 IIT-HYD. All rights reserved.
 //
 
@@ -22,6 +22,7 @@ using namespace std;
 vector<int> *liveList = new vector<int>;
 /*Lock to be acquired before acquiring lock on live list.*/
 mutex *lockLiveList = new mutex;
+
 
 /**
  *
@@ -52,7 +53,7 @@ class G_node {
         /*List to define the versions of this key.*/
         vector<version*> *G_vl = new vector<version*>;
         /*Reinterant lock*/
-        recursive_mutex lmutex;
+        mutex lmutex;
         /*next red node*/
         G_node *red_next;
         /*next blue node*/
@@ -81,16 +82,16 @@ public:
     int HashFunc(int key);
     
     /*Insert Key-Node in the appropriate position with a default version.*/
-    void list_Ins(int L_key, int* L_val, G_node** G_preds, G_node** G_currs, LIST_TYPE lst_type, int L_tx_id);
+    void list_Ins(vector<G_node*> *lockedNodes, int L_key, int* L_val, G_node** G_preds, G_node** G_currs, LIST_TYPE lst_type, int L_tx_id);
     
     /*Function to determine preds and curs.*/
-    OPN_STATUS list_LookUp(int L_bucket_id, int L_key, G_node** G_preds, G_node** G_currs);
+    OPN_STATUS list_LookUp(vector<G_node*> *lockedNodes, int L_bucket_id, int L_key, G_node** G_preds, G_node** G_currs);
     
     /*Identify the right version of a G_node that is largest but less than current transaction id.*/
     version* find_lts(int L_tx_id, G_node *G_curr);
     
     /*Check for a Key-Node if not then create one.*/
-    OPN_STATUS commonLuNDel(int L_tx_id, int L_bucket_id, int L_key, int* L_val, G_node** G_preds, G_node** G_currs);
+    OPN_STATUS commonLuNDel(vector<G_node*> *lockedNodes, int L_tx_id, int L_bucket_id, int L_key, int* L_val, G_node** G_preds, G_node** G_currs);
     
     /*Method to find the closest tuple created by transaction Tj with the largest timestamp smaller than L_tx_id.*/
     bool check_version(int L_tx_id, G_node* G_curr);
@@ -106,10 +107,14 @@ public:
 };
 
 /*Function to acquire all locks taken during listLookUp().*/
-void acquirePredCurrLocks(G_node** G_preds, G_node** G_currs);
+OPN_STATUS acquirePredCurrLocks(vector<G_node*> *lockedNodes, G_node** G_preds, G_node** G_currs);
 /*Function to release all locks taken during listLookUp().*/
-void releasePredCurrLocks(G_node** G_preds, G_node** G_currs);
+void releasePredCurrLocks(vector<G_node*> *lockedNodes, G_node** G_preds, G_node** G_currs);
 /*This method identifies the conflicts among the concurrent methods of different transactions.*/
 OPN_STATUS methodValidation(G_node** G_preds, G_node** G_currs);
-
+/*Function to find a node among locked nodes.*/
+bool isNodeLocked(vector<G_node*> *lockedNodes, G_node* g_node);
+/*Method to delete the preds and currs locked by the transaction from the locked list.*/
+void removePredsCurrsFromLockList(vector<G_node*> *lockedNodes, G_node** G_preds, G_node** G_currs);
+void removePredsCurrs(vector<G_node*> *lockedNodes, G_node* g_node);
 #endif /* dataStructure_hpp */

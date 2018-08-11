@@ -2,6 +2,7 @@
 //  common.h
 //  MV-OSTM
 //
+//  Created by Chirag Juyal on 4/5/18.
 //  Copyright © 2018 IIT-HYD. All rights reserved.
 //
 
@@ -16,6 +17,7 @@
 #include <math.h>
 #include <sstream>
 #include <assert.h>
+#include <atomic>
 
 #define BAD_INDEX INT_MAX
 #define BAD_VALUE INT_MIN
@@ -25,8 +27,11 @@
 #define DEFAULT_MARKED 0
 #define DEBUG_LOGS 0
 
+
 typedef uint64_t uint_t;
 const int TABLE_SIZE = 1;
+
+std::atomic<int> G_cnt;
 
 enum OPN_NAME{
     INSERT = 5,

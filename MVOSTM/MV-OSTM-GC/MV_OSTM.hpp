@@ -2,6 +2,7 @@
 //  MV_OSTM.hpp
 //  MV-OSTM
 //
+//  Created by Chirag Juyal on 4/5/18.
 //  Copyright © 2018 IIT-HYD. All rights reserved.
 //
 
@@ -15,7 +16,8 @@
 #include <algorithm>
 
 /** 
- * L_rec class is a class to create and maintain arecord withing the local log/buffer. 
+ * L_rec class is a class to create and maintain arecord withing the 
+ * local log/buffer. 
  **/
 class L_rec {
     public:
@@ -32,7 +34,9 @@ class L_rec {
         OPN_STATUS L_opn_status;
         /*To keep track of operation.*/
         OPN_NAME L_opn;
-        
+        /*FLag to keep track of key is in Shared memory of Not : 
+         * Is to be used to remove Insert then Delete problem.*/
+        bool isKeyInSM = false;
         /*Setter methods of the class.*/
         void setBucketId(int bucketId);
         void setKey(int key);
