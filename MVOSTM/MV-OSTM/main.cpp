@@ -1,4 +1,8 @@
-
+/*
+*DESCRIPTION    :   Prints the linked list
+*AUTHOR         :   AJAY SINGH
+*COMPANY        :   IIT Hyderabad
+*/
 
 #include <iostream>
 #include <fstream>
@@ -53,7 +57,10 @@ std::mutex pmtx; // to print in concurrent scene
 std::condition_variable cv;
 bool launch = false;
 
-
+/*
+* DESCP:	barrier to sychronize all threads after creation.
+* AUTHOR:	Ajay Singh
+*/
 void wait_for_launch()
 {
 	std::unique_lock<std::mutex> lck(mtx);
@@ -61,7 +68,10 @@ void wait_for_launch()
 	while (!launch) cv.wait(lck);
 }
 
-
+/*
+* DESCP:	let threads execute their task after final thread has arrived.
+* AUTHOR:	Ajay Singh
+*/
 void shoot()
 {
 	std::unique_lock<std::mutex> lck(mtx);
@@ -72,7 +82,10 @@ void shoot()
 /*************************Barrier code ends*****************************/
 
 
-
+/*
+* DESCP:	initialise the hash table.
+* AUTHOR:	Ajay Singh
+*/
 OPN_STATUS add_init(uint_t key, uint_t thid)
 {
     L_txlog* txlog;
@@ -102,7 +115,10 @@ OPN_STATUS add_init(uint_t key, uint_t thid)
     return txs;
 }
 
-
+/*
+* DESCP:	method to execute single operation insert per transaction.
+* AUTHOR:	Ajay Singh
+*/
 OPN_STATUS add(uint_t key, uint_t val, uint_t thid)
 {
     L_txlog* txlog;
@@ -133,7 +149,10 @@ OPN_STATUS add(uint_t key, uint_t val, uint_t thid)
     return txs;
 }
 
-
+/*
+* DESCP:	method to execute single operation lookup per transaction.
+* AUTHOR:	Ajay Singh
+*/
 OPN_STATUS look(uint_t key, uint_t thid)
 {
 
@@ -166,7 +185,10 @@ OPN_STATUS look(uint_t key, uint_t thid)
     return txs;
 }
 
-
+/*
+* DESCP:	method to execute single operation delete per transaction.
+* AUTHOR:	Ajay Singh
+*/
 OPN_STATUS del(uint_t key, uint_t thid)
 {
 //    pthread_mutex_lock(&print_mtx);
@@ -205,7 +227,10 @@ OPN_STATUS del(uint_t key, uint_t thid)
 
 }
 
-
+/*
+* DESCP:	method to execute multiple operation lookup per transaction.
+* AUTHOR:	Ajay Singh
+*/
 OPN_STATUS multilook(int thid)
 {
 //    pthread_mutex_lock(&print_mtx);
@@ -606,7 +631,10 @@ return txs;
 
 
 
-
+/*
+* DESCP:	worker for threads that call ht's function as per their distribution.
+* AUTHOR:	Ajay Singh
+*/
 void worker(uint_t tid)
 {
 	//barrier to synchronise all threads for a coherent launch :)
