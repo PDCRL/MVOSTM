@@ -392,44 +392,55 @@ bool HashMap::check_version(int L_tx_id, G_node* G_curr)
 }
 
 /*
- * Method to add a version in the appropriate key_node version list in sorted order.
+ * Method to add a version in the appropriate key_node version list 
+ * in sorted order.
  */
 void HashMap::insertVersion(int L_tx_id, int L_val, G_node* key_Node)
 {
-	cout<<"Inserting a version\n";
+	cout<<"Hi";
     version *newVersion = new version();
     newVersion->G_ts = L_tx_id;
     newVersion->G_val = L_val;
-
-    /*Lock the live list.*/
-    lockLiveList->lock();
-    /*Check if there are more than zero elements in the live set, if yes then take the first element as it is the least live timestamp.*/
-    if(liveList->size() != 0 && liveList->at(0) == L_tx_id)
-    {
-		G_cnt.fetch_sub(key_Node->G_vl->size());
-		/*Clear all the versions and create a new version.*/
-		key_Node->G_vl->clear();
+    
+    /*If the size of the versionlist is less than K, then insert the 
+    version in the appropriate order in the version list.*/
+    if(key_Node->G_vl->size() < K) {
+		for(int i=0;i<key_Node->G_vl->size();i++)
+		{
+			/*Look for an appropriate place to put the new version in 
+			 * orer to maintain the order of the version list.*/
+			if(key_Node->G_vl->at(i)->G_ts > L_tx_id)
+			{
+				key_Node->G_vl->insert(key_Node->G_vl->begin()+i, 
+									   newVersion);
+				G_cnt++;
+				return;
+			}
+		}
+	} 
+	/*If the version list is of size K or more than first delete the 
+	 * first version of the list and then insert the new version in the 
+	 * appropriate order in the version list.*/
+	else {
+		key_Node->G_vl->erase(key_Node->G_vl->begin());
+		G_cnt--;
+		for(int i=0;i<key_Node->G_vl->size();i++)
+		{
+			/*Look for an appropriate place to put the new version 
+			 * in orer to maintain the order of the version list.*/
+			if(key_Node->G_vl->at(i)->G_ts > L_tx_id)
+			{
+				key_Node->G_vl->insert(key_Node->G_vl->begin()+i, 
+				                       newVersion);
+				G_cnt++;
+				return;
+			}
+		}
 	}
-		
-    for(int i=0;i<key_Node->G_vl->size();i++)
-    {
-        /*Look for an appropriate place to put the new version in orer to maintain the order of the version list.*/
-        if(key_Node->G_vl->at(i)->G_ts > L_tx_id)
-        {
-            key_Node->G_vl->insert(key_Node->G_vl->begin()+i, newVersion);        
-			/*unLock the live list.*/
-			lockLiveList->unlock();
-			G_cnt++;
-            return;
-        }
-    }
     /*Else push at the last.*/
     key_Node->G_vl->push_back(newVersion);
     G_cnt++;
-    /*unLock the live list.*/
-	lockLiveList->unlock();
 }
-
 
 /*
  *Function to delete a node from blue link and place it in red 
@@ -619,3 +630,4 @@ void removePredsCurrs(vector<G_node*> *lockedNodes, G_node* g_node)
 		}
 	}
 }
+

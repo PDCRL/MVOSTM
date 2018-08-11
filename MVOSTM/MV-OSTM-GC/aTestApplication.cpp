@@ -13,16 +13,16 @@
 #include <unistd.h>
 #include <atomic>
 #include <sys/time.h>
-#define NUM_THREADS 2
+#define NUM_THREADS 64
 
 #define NO_OF_TRANX 6400
 #define NO_OF_OPS_PER_TRANX 10
-#define MAX_KEY  1000000/*operation ket range OKR*/
+#define MAX_KEY  1000/*operation ket range OKR*/
 #define INTRA_TRANX_DELAY 100
 
 #define LOOKUP 10
-#define INSERT 80
-#define DELETE 10
+#define INSERT 45
+#define DELETE 45
 
 using namespace std;
 

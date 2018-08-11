@@ -18,12 +18,6 @@
 
 using namespace std;
 
-/*List top maintain the all the live transactions.*/
-vector<int> *liveList = new vector<int>;
-/*Lock to be acquired before acquiring lock on live list.*/
-mutex *lockLiveList = new mutex;
-
-
 /**
  *
  * Class defines struture of a single version of a Key-Node.

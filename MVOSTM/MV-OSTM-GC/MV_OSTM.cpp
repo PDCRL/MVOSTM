@@ -198,6 +198,7 @@ MV_OSTM::MV_OSTM()
     init();
     /*shared memory - will init hashtablle as in main.cpp*/
     hash_table = new HashMap();
+    //Intialize the gloabl counter.
     G_cnt.store(0);
 }
 
@@ -227,25 +228,6 @@ L_txlog* MV_OSTM::begin()
     //Get the transaction Id.
     int tx_id = G_cnt++;
     L_txlog* tx_log = new L_txlog(tx_id);
-    /*Lock the live set.*/
-    lockLiveList->lock();
-    /*Add current transactions timestamp to live set.*/
-    for(int i=0;i<liveList->size();i++)
-    {
-        /*Look for an appropriate place to put the new entry in orer to maintain the order of the live list.*/
-        if(liveList->at(i) > tx_id)
-        {
-            liveList->insert(liveList->begin()+i, tx_id);
-            /*Unlock the live set.*/
-			lockLiveList->unlock();
-            return tx_log;
-        }
-    }
-    /*If no place is found insert on to last of liveset.*/
-    liveList->push_back(tx_id);
-    /*Unlock the live set.*/
-    lockLiveList->unlock();
-    
     return tx_log;
 }
 
@@ -291,21 +273,6 @@ OPN_STATUS MV_OSTM::tx_lookup(L_txlog* txlog, int L_key, int* value)
         L_opn_status = hash_table->commonLuNDel(&txlog->lockedNodes, txlog->L_tx_id,L_bucket_id,L_key,value,G_preds,G_currs);
         if(L_opn_status == ABORT)
         {
-			/*Lock the live list.*/
-			lockLiveList->lock();
-	
-			/*Remove the current transaction from the live set.*/
-			for(auto i=liveList->begin(); i != liveList->end(); ++i)
-			{
-				if(*i == txlog->L_tx_id)
-				{
-					liveList->erase(i);
-					i--;
-				}
-			}
-			/*unLock the live list.*/
-			lockLiveList->unlock();
-
 			return L_opn_status;
         }
         //Create local log record and append it into increasing order of keys.
@@ -393,21 +360,6 @@ OPN_STATUS MV_OSTM::tx_delete(L_txlog* txlog, int L_key, int* value)
         //If operation status is returned as ABORT then abort the transaction.
 		if(L_opn_status == ABORT)
         {
-			/*Lock the live list.*/
-			lockLiveList->lock();
-	
-			/*Remove the current transaction from the live set.*/
-			for(auto i=liveList->begin(); i != liveList->end(); ++i)
-			{
-				if(*i == txlog->L_tx_id)
-				{
-					liveList->erase(i);
-					i--;
-				}
-			}
-			/*unLock the live list.*/
-			lockLiveList->unlock();
-
 			return L_opn_status;
         }
 		//Set the value of the record.
@@ -427,21 +379,6 @@ OPN_STATUS MV_OSTM::tx_delete(L_txlog* txlog, int L_key, int* value)
         L_opn_status = hash_table->commonLuNDel(&txlog->lockedNodes, txlog->L_tx_id,L_bucket_id,L_key,value,G_preds,G_currs);
         if(L_opn_status == ABORT)
         {
-			/*Lock the live list.*/
-			lockLiveList->lock();
-	
-			/*Remove the current transaction from the live set.*/
-			for(auto i=liveList->begin(); i != liveList->end(); ++i)
-			{
-				if(*i == txlog->L_tx_id)
-				{
-					liveList->erase(i);
-					i--;
-				}
-			}
-			/*unLock the live list.*/
-			lockLiveList->unlock();
-
 			return L_opn_status;
         }
         //Create local log record and append it into increasing order of keys.
@@ -561,21 +498,6 @@ OPN_STATUS MV_OSTM::tryCommit(L_txlog* txlog)
 			{
 				txlog->lockedNodes.at(i)->lmutex.unlock();
 			}
-			/*Lock the live list.*/
-			lockLiveList->lock();
-	
-			/*Remove the current transaction from the live set.*/
-			for(auto i=liveList->begin(); i != liveList->end(); ++i)
-			{
-				if(*i == txlog->L_tx_id)
-				{
-					liveList->erase(i);
-					i--;
-				}
-			}
-			/*unLock the live list.*/
-			lockLiveList->unlock();
-
 			return ABORT;
         }
         
@@ -596,21 +518,6 @@ OPN_STATUS MV_OSTM::tryCommit(L_txlog* txlog)
             {
 				txlog->lockedNodes.at(j)->lmutex.unlock();
             }
-            /*Lock the live list.*/
-			lockLiveList->lock();
-	
-			/*Remove the current transaction from the live set.*/
-			for(auto i=liveList->begin(); i != liveList->end(); ++i)
-			{
-				if(*i == txlog->L_tx_id)
-				{
-					liveList->erase(i);
-					i--;
-				}
-			}
-			/*unLock the live list.*/
-			lockLiveList->unlock();
-
             return ABORT;
         }          
         /*Update local log entry.*/
@@ -644,21 +551,6 @@ OPN_STATUS MV_OSTM::tryCommit(L_txlog* txlog)
 			{
 				txlog->lockedNodes.at(i)->lmutex.unlock();
 			}
-			/*Lock the live list.*/
-			lockLiveList->lock();
-	
-			/*Remove the current transaction from the live set.*/
-			for(auto i=liveList->begin(); i != liveList->end(); ++i)
-			{
-				if(*i == txlog->L_tx_id)
-				{
-					liveList->erase(i);
-					i--;
-				}
-			}
-			/*unLock the live list.*/
-			lockLiveList->unlock();
-
 			return ABORT;
         }
 		/*If operation is insert then after successfull completion of its node corresponding to the key should be part of BL.*/
@@ -686,22 +578,6 @@ OPN_STATUS MV_OSTM::tryCommit(L_txlog* txlog)
         L_list->at(i)->setPredsnCurrs(G_preds,G_currs);
     }
     
-    /*Lock the live list.*/
-	lockLiveList->lock();
-	
-	/*Remove the current transaction from the live set.*/
-	for(auto i=liveList->begin(); i != liveList->end(); ++i)
-    {
-        if(*i == txlog->L_tx_id)
-        {
-            liveList->erase(i);
-            i--;
-        }
-    }
-	
-	/*unLock the live list.*/
-	lockLiveList->unlock();
-    
     /*Unlock all the variables in the increasing order.*/
    for(int i=0;i<txlog->lockedNodes.size();i++)
     {
@@ -710,6 +586,7 @@ OPN_STATUS MV_OSTM::tryCommit(L_txlog* txlog)
     
     return OK;
 }
+
 /*
  * This method is used to abort the transactions.
  */
@@ -717,3 +594,4 @@ OPN_STATUS MV_OSTM::tryAbort(L_txlog* txlog)
 {
     return OK;
 }
+

@@ -8,7 +8,7 @@
 #include "MV_OSTM.cpp"
 #include <pthread.h>
 #include <atomic>
-#define MAX_KEY 50
+#define MAX_KEY 1000
 
 using namespace std;
 //Variables define to log abort counts.
@@ -19,10 +19,10 @@ atomic<unsigned long int> updaborts (0);
 
 MV_OSTM* lib = new MV_OSTM();
 //Local variable to set the # of threads and I/D/L percentages.
-uint_t num_threads = 4;
+uint_t num_threads = 64;
 uint_t prinsert = 45, prlookup = 10, prdelete = 45;
 uint_t num_op_per_tx = 10;
-int testSize = 100;
+int testSize = 1;
 thread *t;
 
 /*************************Barrier code begins*****************************/
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
  
 	duration = (end_time.tv_sec - start_time.tv_sec);
 	duration += (end_time.tv_usec - start_time.tv_usec)/ 1000000.0;
-	std::cout<<"time..: "<<duration<<" seconds"<<std::endl;
+	cout<<"time..: "<<duration<<" seconds"<<std::endl;
 	cout<<"Memory Consumed : "<<G_cnt.load()<<endl;
 	} catch(const std::system_error& e) {
         std::cout << "Caught system_error with code " << e.code() 

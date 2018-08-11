@@ -17,8 +17,8 @@
 #include <math.h>
 #include <sstream>
 #include <assert.h>
+#include <string>
 #include <atomic>
-
 #define BAD_INDEX INT_MAX
 #define BAD_VALUE INT_MIN
 #define DEFAULT_KEY INT_MIN
@@ -26,12 +26,14 @@
 #define DEFAULT_TS 0
 #define DEFAULT_MARKED 0
 #define DEBUG_LOGS 0
+#define K 4
 
 
 typedef uint64_t uint_t;
 const int TABLE_SIZE = 1;
 
 std::atomic<int> G_cnt;
+
 
 enum OPN_NAME{
     INSERT = 5,
